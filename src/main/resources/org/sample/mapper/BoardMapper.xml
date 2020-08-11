@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.sample.mapper.BoardMapper">
+<select id="getList" resultType="org.sample.domain.BoardVO">
+	<![CDATA[select * from tbl_board where bno > 0]]>
+</select>
+
+<insert id="insert">
+	insert into tbl_board (title, content, writer)
+	values (#{title}, #{content}, #{writer})
+</insert>
+<!-- <insert id="insertSelectKey">
+	<selectKey keyProperty="bno" order="BEFORE" resultType="long">
+		select NEXT VALUE FOR seq_board from dual
+	</selectKey>
+	insert into tbl_board (bno, title, content, writer)
+	values (#{bno}, #{title}, #{content}, #{writer})
+</insert>
+ -->
+<select id="read" resultType="org.sample.domain.BoardVO">
+	select * from tbl_board where bno = #{bno}
+</select>
+<delete id="delete">
+	delete from tbl_board where bno = #{bno}
+</delete>
+<update id="update">
+	update tbl_board
+	set title=#{title},
+	content=#{content},
+	writer=#{writer},
+	updateDate = now()
+	where bno = #{bno}
+</update>
+
+<sql id="criteria">
+	<if test="type != null">
+		<trim prefix="WHERE (" suffix=")" prefixOverrides="ANd |OR">
+			<foreach collection="typeArr" item="type">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'T'.toString()">
+							title like concat('%',#{keyword},'%')
+						</when>
+						<when test="type == 'C'.toString()">
+							content like concat('%',#{keyword},'%')
+						</when>
+						<when test="type == 'W'.toString()">
+							writer like concat('%',#{keyword},'%')
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</if>
+</sql>
+
+<select id="getListWithPaging" resultType="org.sample.domain.BoardVO">
+	<![CDATA[
+	select
+		bno, title, content, writer, regdate, updatedate	
+	from
+		tbl_board
+	]]>
+	<include refid="criteria"></include>
+	
+	limit #{rowNum}, #{amount}
+	
+</select>
+
+<select id="getTotalCount" resultType="int">
+select count(*) from tbl_board
+
+<include refid="criteria"></include>
+
+</select>
+
+</mapper>
